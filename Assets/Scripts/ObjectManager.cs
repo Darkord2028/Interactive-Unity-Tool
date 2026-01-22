@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 public enum Axis
 {
@@ -11,7 +13,6 @@ public enum Axis
 
 public class ObjectManager : MonoBehaviour
 {
-
     [Header("Input Fields")]
     [SerializeField] TMP_InputField posXInput;
     [SerializeField] TMP_InputField posYInput;
@@ -37,17 +38,23 @@ public class ObjectManager : MonoBehaviour
         rotZInput.onEndEdit.AddListener(delegate { OnRotationChanged(Axis.Z); });
     }
 
+    void Update()
+    {
+        if (Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            SelectShape();
+        }
+    }
+
     public void Spawn(int primitiveType)
     {
         PrimitiveType type = (PrimitiveType)primitiveType;
         
         GameObject go = GameObject.CreatePrimitive(type);
         spawnedObjects.Add(go);
-        currentSelected = go;
         go.transform.position = Vector3.zero;
         go.transform.rotation = Quaternion.identity;
-        SetPosition(go.transform.position);
-        SetRotation(go.transform.eulerAngles);
+        SetCurrentShape(go);
     }
 
     public void ClearAll()
@@ -57,6 +64,7 @@ public class ObjectManager : MonoBehaviour
             Destroy(GO);
         }
         spawnedObjects.Clear();
+        SetCurrentShape(null);
     }
 
     private void SetPosition(Vector3 position)
@@ -107,7 +115,7 @@ public class ObjectManager : MonoBehaviour
     {
         if (!currentSelected)
         {
-            SetPosition(Vector3.zero);
+            SetRotation(Vector3.zero);
             return;
         }
 
@@ -132,6 +140,51 @@ public class ObjectManager : MonoBehaviour
         currentSelected.transform.eulerAngles = rot;
         SetRotation(currentSelected.transform.eulerAngles);
 
+    }
+
+    private void SelectShape()
+    {
+        if (EventSystem.current.IsPointerOverGameObject())
+        {
+            return;
+        }
+
+        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        if (Physics.Raycast(ray, out RaycastHit hitInfo))
+        {
+            if (spawnedObjects.Contains(hitInfo.collider.gameObject))
+            {
+                SetCurrentShape(hitInfo.collider.gameObject);
+            }
+        }
+    }
+
+    private void SetCurrentShape(GameObject gameObject)
+    {
+        if (!gameObject)
+        {
+            currentSelected = null;
+            return;
+        }
+        else if (currentSelected)
+        {
+            currentSelected.layer = LayerMask.NameToLayer("Default");
+        }
+        currentSelected = gameObject;
+        currentSelected.layer = LayerMask.NameToLayer("Outline");
+        SetPosition(currentSelected.transform.position);
+        SetRotation(currentSelected.transform.eulerAngles);
+    }
+
+    public void OnFocusInput(InputAction.CallbackContext context)
+    {
+        if (!context.performed || currentSelected == null)
+            return;
+
+        Transform pivot = Camera.main.transform.parent;
+        if (!pivot) return;
+
+        pivot.position = currentSelected.transform.position;
     }
 
 }
