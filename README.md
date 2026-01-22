@@ -2,23 +2,6 @@
  An interactive Unity-based 3D tool that allows users to spawn, select, manipulate objects and navigate the scene camera using intuitive mouse and keyboard controls.
 The project mimics basic Unity Scene View functionality and is intended for learning, prototyping, and interactive tool development.
 
-# Project Structure
- Interactive-Unity-Tool/
-├── Assets/
-│   ├── Scenes/
-│   │   └── MainScene.unity
-│   ├── Scripts/
-│   │   ├── ObjectManager.cs
-│   │   ├── CameraManager.cs
-│   │   └── UI Handlers
-│   ├── UI/
-│   │   ├── TMP Input Fields
-│   │   └── Buttons
-│   └── Prefabs/
-├── Packages/
-├── ProjectSettings/
-└── README.md
-
 # Script Overview
  # ObjectManager.cs
   Spawns primitive objects
